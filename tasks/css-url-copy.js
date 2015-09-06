@@ -2,17 +2,17 @@ module.exports = function(grunt) {
   var BASE_URL_REGEX = 'url\\(["\']?([^"\'\\(\\)]+?)["\']?\\)[};,!\\s]';'"]"])"]'
   var path = require('path');
 
-  function processNextUrl(fileContent, currentUrlIndex, urlArray, baseDir, isVerbose, finishCallback) {
+  function processNextUrl(fileContent, currentUrlIndex, urlArray, baseDir, resourceDir, rootDir, isVerbose, finishCallback) {
     if (++currentUrlIndex === urlArray.length) {
       finishCallback();
     } else {
-      processUrl(fileContent, currentUrlIndex, urlArray, baseDir, isVerbose, finishCallback);
+      processUrl(fileContent, currentUrlIndex, urlArray, baseDir, resourceDir, rootDir, isVerbose, finishCallback);
     }
   }
 
-  function processUrl(fileContent, currentUrlIndex, urlArray, baseDir, isVerbose, finishCallback) {
+  function processUrl(fileContent, currentUrlIndex, urlArray, baseDir, resourceDir, rootDir, isVerbose, finishCallback) {
     var url = urlArray[currentUrlIndex];
-    var nextUrl = processNextUrl.bind(null, fileContent, currentUrlIndex, urlArray, baseDir, isVerbose, finishCallback);
+    var nextUrl = processNextUrl.bind(null, fileContent, currentUrlIndex, urlArray, baseDir, resourceDir, rootDir, isVerbose, finishCallback);
     try {
       if (isVerbose) {
         grunt.log.writeln('\n[ #' + (currentUrlIndex + 1) + '  ]');
@@ -36,6 +36,7 @@ module.exports = function(grunt) {
       var escapedUrl = url.replace(/[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g, '\\$&');
       var copyUrlRegex = '\\([\'"]?' + escapedUrl + '[\'"]?\\)';'"]"]'
       fileContent.content = fileContent.content.replace(new RegExp(copyUrlRegex, 'g'), '("resources/' + resourceName + queries + '")');
+      grunt.file.copy(rootDir + resourceName, resourceDir + '/' + resourceName);
       return nextUrl();
     } catch (e) {
       grunt.log.error(e);
@@ -49,9 +50,8 @@ module.exports = function(grunt) {
       var fileContent = grunt.file.read(fileSrc);
       var isVerbose = grunt.option('verbose');
       var baseDir = path.resolve(path.dirname(fileSrc));
-      //var baseDir = path.resolve(process.cwd());
-      var resourceDir = process.cwd() + '/' + root + 'resources';
-      
+      var rootDir = process.cwd() + '/' + root;
+      var resourceDir = rootDir + 'resources';
       var urlRegex = new RegExp(BASE_URL_REGEX, 'g');
       var allUrls = [];
       var urlMatch;
@@ -71,7 +71,7 @@ module.exports = function(grunt) {
       var uniqueResourceUrls = grunt.util._.uniq(validUrls);
       grunt.log.writeln(uniqueResourceUrls.length + ' resource URL' + (uniqueResourceUrls.length > 1 ? 's' : '') + ' found');
       var fileContentRef = { content: fileContent  };
-      processUrl(fileContentRef, 0, uniqueResourceUrls, baseDir, isVerbose, function() {
+      processUrl(fileContentRef, 0, uniqueResourceUrls, baseDir, resourceDir, rootDir, isVerbose, function() {
         grunt.file.write(fileDest, fileContentRef.content);
         grunt.log.writeln('Done: File "' + fileDest + '" created');
         callback();
