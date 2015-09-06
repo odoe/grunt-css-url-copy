@@ -7,6 +7,8 @@ This plugin will copy all resources to a single location that the minified resou
 
 This plugin will copy your css file to a new file and not modify the original.
 
+Inspired by [css-url-embed](https://github.com/mihhail-lapushkin/grunt-css-url-embed).
+
 ## Getting Started
 This plugin requires Grunt `~0.4.5`
 
