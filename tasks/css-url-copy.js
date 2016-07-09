@@ -45,6 +45,9 @@ module.exports = function(grunt) {
   }
 
   function processFile(fileSrc, fileDest, root, callback) {
+    if (Array.isArray(fileSrc)) {
+      fileSrc = fileSrc[0];
+    }
     try {
       grunt.log.subhead('Processing source file "' + fileSrc + '"');
       var fileContent = grunt.file.read(fileSrc);
